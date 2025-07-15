@@ -1,0 +1,76 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname search_bar) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/image)
+(require 2htdp/universe)
+
+;; Search Bar
+
+;; =================
+;; Constants:
+(define WIDTH 600)
+(define HEIGHT 400)
+(define MTS (empty-scene WIDTH HEIGHT))
+
+(define SEARCH_BAR (overlay/align "center" "top" (overlay (text "Search Bar" 24 "white") (rectangle 300 30 "solid" "blue")) (rectangle 300 200 "solid" "gray")))
+
+;; =================
+;; Data definitions:
+(define-struct search-bar (content))
+;; SearchBar is (make-search-bar String)
+;; interp. content of search bar
+
+(define SB1 (make-search-bar "racket"))
+
+#;
+(define (fn-for-search-bar sb)
+  (... (search-bar-content sb)))
+
+;; Template rules used:
+;; - compound: 2 fields
+
+;; =================
+;; Functions:
+
+;; SearchBar -> SearchBar
+;; start the world with (main (make-search-bar ""))
+;; 
+(define (main sb)
+  (big-bang sb                      ; SearchBar
+    (on-tick   update-search-bar)   ; SearchBar -> SearchBar
+    (to-draw   render-search-bar)   ; SearchBar -> Image
+    (on-key    handle-key)))        ; SearchBar KeyEvent -> SearchBar
+
+
+;; SearchBar -> SearchBar
+;; indicate content of search bar
+(check-expect (update-search-bar (make-search-bar "racket")) (make-search-bar "racket"))
+
+;; (define (update-search-bar sb) "") ; stub
+
+(define (update-search-bar sb) sb)
+
+
+;; SearchBar -> Image
+;; render content of search bar
+(check-expect (render-search-bar (make-search-bar "racket")) (overlay (text "racket" 24 "black") SEARCH_BAR))
+(check-expect (render-search-bar (make-search-bar "gogle")) (overlay (text "gogle" 24 "black") SEARCH_BAR))
+
+; (define (render-search-bar sb) MTS) ; stub
+
+;; <use template from SearchBar>
+(define (render-search-bar sb)
+   (overlay (text (search-bar-content sb) 24 "black") SEARCH_BAR))
+
+
+;; SearchBar KeyEvent -> SearchBar
+;; input content in search bar when pressed key
+(check-expect (handle-key (make-search-bar "racket") "\b") (make-search-bar "racke"))
+(check-expect (handle-key (make-search-bar "") "\b") (make-search-bar ""))
+(check-expect (handle-key (make-search-bar "racke") "t") (make-search-bar "racket"))
+
+(define (handle-key sb ke)
+  (cond [(key=? ke "\b") (if (not (= (string-length (search-bar-content sb)) 0)) (make-search-bar (substring (search-bar-content sb) 0 (- (string-length (search-bar-content sb)) 1))) (make-search-bar ""))]
+        [else 
+         (make-search-bar (string-append (search-bar-content sb) ke))]))
+
